@@ -1,5 +1,5 @@
-pyspark
+pyspark 
 pandas
-numpy
-tensorflow
-scikit-learn
+numpy 
+tensorflow 
+scikit-learn 

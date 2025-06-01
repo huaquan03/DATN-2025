@@ -1,7 +1,4 @@
-
-pyspark
-pandas
-numpy
-
-tensorflow
-scikit-learn
+pandas 
+numpy 
+tensorflow 
+pyspark 

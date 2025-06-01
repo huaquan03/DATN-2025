@@ -1,38 +1,54 @@
 version: '3.8'
 services:
+  spark-batch-finetune:
+    build: ./spark_batch_finetune
+    container_name: spark-batch-finetune
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9093
+      - SPARK_MASTER_URL=spark://spark-master:7077
+    volumes:
+      - ./spark_batch:/opt/spark_batch
+    command: ["python", "finetune.py"]
+    networks:
+      - shared_net
+  spark-streaming:
+    build: ./spark_streaming
+    container_name: spark-streaming
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9093
+      - HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop
+      - YARN_CONF_DIR=/opt/hadoop/etc/hadoop
+    volumes:
+      - ./spark_output:/data/output
+      - /home/huaquan/desktop/DATN-2025/storage/hdfs/hadoop-conf:/opt/hadoop-2.7.4/etc/hadoop 
+    networks:
+      - shared_net
 
-  # spark-streaming:
-  #   build: ./spark_streaming
-  #   environment:
-  #     - KAFKA_BOOTSTRAP_SERVERS=kafka:9093
-  #     - SPARK_MASTER_URL=spark://spark-master:7077
-  #   volumes:
-  #     - ./spark_output:/data/output 
-  #   networks:
-  #     - shared_net
-
-  # spark-batch-train:
-  #   build: ./spark_batch_train
-  #   environment:
-  #     - KAFKA_BOOTSTRAP_SERVERS=kafka:9093
-  #     - SPARK_MASTER_URL=spark://spark-master:7077
-  #   volumes:
-  #     - ./spark_batch:/opt/spark_batch
-  #   command: ["python", "train.py"]
-  #   networks:
-  #     - shared_net
+  spark-batch-train:
+    build: ./spark_batch_train
+    container_name: spark-batch-train
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9093
+      - SPARK_MASTER_URL=spark://spark-master:7077
+    volumes:
+      - ./spark_batch:/opt/spark_batch
+    command: ["python", "train.py"]
+    networks:
+      - shared_net
       
-  # spark-batch-predict:
-  #   build: ./spark_batch_predict
-  #   environment:
-  #     - KAFKA_BOOTSTRAP_SERVERS=kafka:9093
-  #     - SPARK_MASTER_URL=spark://spark-master:7077
-  #   volumes:
-  #     - ./spark_batch:/opt/spark_batch
-  #   command: ["python", "predict.py"]
-  #   networks:
-  #     - shared_net
+  spark-batch-predict:
+    build: ./spark_batch_predict
+    container_name: spark-batch-predict
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9093
+      - SPARK_MASTER_URL=spark://spark-master:7077
+    volumes:
+      - ./spark_batch:/opt/spark_batch
+    command: ["python", "predict.py"]
+    networks:
+      - shared_net
     
+
 networks:
   shared_net:
     external: true
