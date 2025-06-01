@@ -1,0 +1,29 @@
+version: '3.8'
+services:
+  crawler-realtime:
+    build: ./realtime
+    container_name: crawler-realtime
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka1:9093,kafka2:9093
+    networks:
+      - shared_net
+    ports:
+      - "5001:5000"  # ánh xạ cổng 5001 của host sang cổng 5000 của container
+  crawler-batch:
+    build: ./batch
+    container_name: crawler-batch
+    volumes:
+      - /home/huaquan/desktop/DATN-2025/storage/hdfs/hadoop-conf:/opt/hadoop/conf
+    environment:
+      - HADOOP_CONF_DIR=/opt/hadoop/conf  
+    ports:
+      - "4040:4040"
+      - "47000:47000"
+      - "47001:47001"
+    networks:
+      - shared_net
+
+
+networks:
+  shared_net:
+    external: true

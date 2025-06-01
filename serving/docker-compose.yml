@@ -1,0 +1,31 @@
+version: '3.8'
+services:
+ 
+  serving-api:
+    build: ./serving_api
+    container_name: serving
+    ports:
+      - "5000:5000"
+    command: ["python", "app.py"]
+    networks:
+      - shared_net
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    hostname: grafana
+    ports:
+      - "3000:3000"  # Port mặc định của Grafana
+    volumes:
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_INSTALL_PLUGINS=vertamedia-clickhouse-datasource  # Cài plugin ClickHouse
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=123456  # Thay bằng mật khẩu của bạn
+    networks:
+      - shared_net
+
+volumes:
+  grafana_data:
+networks:
+  shared_net:
+    external: true

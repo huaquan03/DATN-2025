@@ -1,0 +1,7 @@
+vnstock
+pandas
+kafka-python
+fastapi
+uvicorn
+
+

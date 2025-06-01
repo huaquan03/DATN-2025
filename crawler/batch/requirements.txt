@@ -1,0 +1,5 @@
+vnstock
+pandas
+numpy
+ta
+clickhouse_connect

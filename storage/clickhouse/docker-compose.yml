@@ -1,0 +1,52 @@
+version: '3'
+services:
+  clickhouse01:
+    image: clickhouse/clickhouse-server:latest
+    container_name: clickhouse01
+    hostname: clickhouse01
+    volumes:
+      - clickhouse01-data:/var/lib/clickhouse
+      - ./configs/clickhouse01.xml:/etc/clickhouse-server/config.d/clickhouse01.xml
+      - ./configs/default-user.xml:/etc/clickhouse-server/users.d/default-user.xml
+    ports:
+      - "9001:9000"
+      - "8121:8123"
+    networks:
+      - shared_net
+
+  clickhouse02:
+    image: clickhouse/clickhouse-server
+    container_name: clickhouse02
+    hostname: clickhouse02
+    volumes:
+      - clickhouse02-data:/var/lib/clickhouse
+      - ./configs/clickhouse02.xml:/etc/clickhouse-server/config.d/clickhouse02.xml
+      - ./configs/default-user.xml:/etc/clickhouse-server/users.d/default-user.xml
+    ports:
+      - "9002:9000"
+      - "8122:8123"
+    networks:
+      - shared_net
+
+  clickhouse03:
+    image: clickhouse/clickhouse-server:latest
+    container_name: clickhouse03
+    hostname: clickhouse03
+    volumes:
+      - clickhouse03-data:/var/lib/clickhouse
+      - ./configs/clickhouse03.xml:/etc/clickhouse-server/config.d/clickhouse03.xml
+      - ./configs/default-user.xml:/etc/clickhouse-server/users.d/default-user.xml
+    ports:
+      - "9003:9000"
+      - "8123:8123"
+    networks:
+      - shared_net
+
+volumes:
+  clickhouse01-data:
+  clickhouse02-data:
+  clickhouse03-data:
+
+networks:
+  shared_net:
+    external: true

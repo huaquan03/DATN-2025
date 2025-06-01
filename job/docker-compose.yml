@@ -1,0 +1,38 @@
+version: '3.8'
+services:
+
+  # spark-streaming:
+  #   build: ./spark_streaming
+  #   environment:
+  #     - KAFKA_BOOTSTRAP_SERVERS=kafka:9093
+  #     - SPARK_MASTER_URL=spark://spark-master:7077
+  #   volumes:
+  #     - ./spark_output:/data/output 
+  #   networks:
+  #     - shared_net
+
+  # spark-batch-train:
+  #   build: ./spark_batch_train
+  #   environment:
+  #     - KAFKA_BOOTSTRAP_SERVERS=kafka:9093
+  #     - SPARK_MASTER_URL=spark://spark-master:7077
+  #   volumes:
+  #     - ./spark_batch:/opt/spark_batch
+  #   command: ["python", "train.py"]
+  #   networks:
+  #     - shared_net
+      
+  # spark-batch-predict:
+  #   build: ./spark_batch_predict
+  #   environment:
+  #     - KAFKA_BOOTSTRAP_SERVERS=kafka:9093
+  #     - SPARK_MASTER_URL=spark://spark-master:7077
+  #   volumes:
+  #     - ./spark_batch:/opt/spark_batch
+  #   command: ["python", "predict.py"]
+  #   networks:
+  #     - shared_net
+    
+networks:
+  shared_net:
+    external: true

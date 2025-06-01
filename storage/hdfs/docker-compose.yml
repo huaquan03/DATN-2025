@@ -1,0 +1,110 @@
+version: '3.8'
+services:
+  namenode:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop2.7.4-java8
+    container_name: namenode
+    ports:
+      - "50070:50070"
+      - "9000:9000"
+    environment:
+      - CLUSTER_NAME=demo-cluster
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+      - HDFS_CONF_dfs_replication=3
+    volumes:
+      - ./namenode_data:/hadoop/dfs/name
+      - ./hadoop-conf:/opt/hadoop-2.7.4/etc/hadoop
+    networks:
+      - shared_net
+
+  datanode1:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop2.7.4-java8
+    container_name: datanode1
+    ports:
+      - "9864:9864"
+    environment:
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+      - HDFS_CONF_dfs_replication=3
+    volumes:
+      - ./datanode1_data:/hadoop/dfs/data
+    networks:
+      - shared_net
+
+  datanode2:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop2.7.4-java8
+    container_name: datanode2
+    environment:
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+      - HDFS_CONF_dfs_replication=3
+    volumes:
+      - ./datanode2_data:/hadoop/dfs/data
+    networks:
+      - shared_net
+
+  datanode3:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop2.7.4-java8
+    container_name: datanode3
+    environment:
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+      - HDFS_CONF_dfs_replication=3
+    volumes:
+      - ./datanode3_data:/hadoop/dfs/data
+    networks:
+      - shared_net
+
+  # ---- BỔ SUNG YARN ----
+
+  resourcemanager:
+    image: bde2020/hadoop-resourcemanager:2.0.0-hadoop2.7.4-java8
+    container_name: resourcemanager
+    ports:
+      - "8088:8088"   # UI YARN ResourceManager
+    environment:
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+      - YARN_CONF_yarn_resourcemanager_hostname=resourcemanager
+    networks:
+      - shared_net  
+    volumes:
+      - ./hadoop-conf:/opt/hadoop-2.7.4/etc/hadoop
+    depends_on:
+      - namenode
+
+  nodemanager1:
+    build: ./nodemanager
+    container_name: nodemanager1
+    environment:
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+      - YARN_CONF_yarn_resourcemanager_hostname=resourcemanager
+      - PYSPARK_PYTHON=/usr/bin/python3
+      - PYSPARK_DRIVER_PYTHON=/usr/bin/python3
+    networks:
+      - shared_net
+    depends_on:
+      - resourcemanager
+    volumes:
+      - ./hadoop-conf:/opt/hadoop-2.7.4/etc/hadoop
+      - ./yarn-logs1:/opt/hadoop-2.7.4/logs/userlogs
+    ports:
+    - "8043:8042"
+
+
+  nodemanager2:
+    build: ./nodemanager
+    container_name: nodemanager2
+    environment:
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+      - YARN_CONF_yarn_resourcemanager_hostname=resourcemanager
+      - PYSPARK_PYTHON=/usr/bin/python3
+      - PYSPARK_DRIVER_PYTHON=/usr/bin/python3
+    networks:
+      - shared_net
+    depends_on:
+      - resourcemanager
+    volumes:
+      - ./hadoop-conf:/opt/hadoop-2.7.4/etc/hadoop
+      - ./yarn-logs1:/opt/hadoop-2.7.4/logs/userlogs
+    ports:
+    - "8044:8042"
+
+networks:
+  shared_net:
+    external: true
