@@ -10,9 +10,8 @@ logger = logging.getLogger(__name__)
 
 def run_streaming():
     # Lấy biến môi trường
-    kafka_bootstrap_servers = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9093")
+    kafka_bootstrap_servers = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka1:9093,kafka2:9093,kafka3:9093")
 
-    # Khởi tạo SparkSession cho YARN client mode
     spark = SparkSession.builder \
         .appName("VN30Streaming") \
         .config("spark.executor.memory", "4g") \
@@ -23,6 +22,8 @@ def run_streaming():
         .config("spark.sql.parquet.compression.codec", "snappy") \
         .config("spark.streaming.backpressure.enabled", "true") \
         .config("spark.streaming.kafka.maxRatePerPartition", "1000") \
+        .config("spark.yarn.dist.jars", "/opt/bitnami/spark/jars/spark-sql-kafka-0-10_2.12-3.5.0.jar,/opt/bitnami/spark/jars/kafka-clients-3.5.0.jar,/opt/bitnami/spark/jars/spark-streaming_2.12-3.5.0.jar,/opt/bitnami/spark/jars/scala-library-2.12.18.jar,/opt/bitnami/spark/jars/spark-streaming-kafka-0-10_2.12-3.5.0.jar,/opt/bitnami/spark/jars/spark-token-provider-kafka-0-10_2.12-3.5.0.jar,/opt/bitnami/spark/jars/slf4j-api-1.7.36.jar,/opt/bitnami/spark/jars/log4j-api-2.17.1.jar,/opt/bitnami/spark/jars/log4j-core-2.17.1.jar,/opt/bitnami/spark/jars/commons-pool2-2.11.1.jar") \
+        .config("spark.yarn.dist.forceDownload", "true") \
         .getOrCreate()
     spark.sparkContext.setLogLevel("INFO")
     logger.info("Khởi tạo SparkSession cho YARN client mode thành công")
@@ -40,7 +41,7 @@ def run_streaming():
         df = spark.readStream \
             .format("kafka") \
             .option("kafka.bootstrap.servers", kafka_bootstrap_servers) \
-            .option("subscribe", "vn30-topic") \
+            .option("subscribe", "GIACKREALTIME") \
             .option("startingOffsets", "latest") \
             .load()
         

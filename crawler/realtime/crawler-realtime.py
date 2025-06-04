@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from vnstock import Vnstock
 import pandas as pd
-from datetime import datetime
+from datetime import datetime,timedelta
 from kafka import KafkaProducer
 
 app = FastAPI()
@@ -9,7 +9,9 @@ app = FastAPI()
 # Hàm fetch_data (giữ nguyên logic của bạn)
 def fetch_data(symbol):
     stock = Vnstock().stock(symbol=symbol, source='VCI')
-    end = datetime.now().strftime('%Y-%m-%d')
+    end = datetime.now()
+    # end =end -timedelta(days=3)  
+    end=end.strftime('%Y-%m-%d')
     df_pandas = stock.quote.history(start=end, end=end, interval='1m')
     df_pandas['ticker'] = symbol
     df_pandas = df_pandas.rename(columns={'date': 'time'})

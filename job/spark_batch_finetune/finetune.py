@@ -9,7 +9,8 @@ from sklearn.preprocessing import MinMaxScaler
 import logging
 import time
 from concurrent.futures import ThreadPoolExecutor
-from io import BytesIO
+import tempfile
+import os
 
 # Thiết lập logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -125,20 +126,27 @@ def split_finetune():
             try:
                 model, scaler_X, scaler_y = train_lstm(X, y, base_model, timesteps=30, epochs=20, fine_tune=True)
                 
-                with BytesIO() as model_buffer, BytesIO() as scaler_X_buffer, BytesIO() as scaler_y_buffer:
-                    model.save(model_buffer)
-                    pd.to_pickle(scaler_X, scaler_X_buffer)
-                    pd.to_pickle(scaler_y, scaler_y_buffer)
+                # Lưu mô hình và scaler vào file tạm cục bộ
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".h5") as temp_model_file, \
+                     tempfile.NamedTemporaryFile(delete=False, suffix=".pkl") as temp_scaler_X_file, \
+                     tempfile.NamedTemporaryFile(delete=False, suffix=".pkl") as temp_scaler_y_file:
                     
-                    # Lưu trực tiếp lên HDFS bằng Spark Hadoop FileSystem API
-                    for file_name, buffer in [
-                        (f"{hdfs_dir}/model_finetune_{target}.h5", model_buffer),
-                        (f"{hdfs_dir}/scaler_X_{target}.pkl", scaler_X_buffer),
-                        (f"{hdfs_dir}/scaler_y_{target}.pkl", scaler_y_buffer)
+                    # Lưu mô hình và scaler
+                    model.save(temp_model_file.name)
+                    pd.to_pickle(scaler_X, temp_scaler_X_file.name)
+                    pd.to_pickle(scaler_y, temp_scaler_y_file.name)
+                    
+                    # Lưu lên HDFS
+                    for file_name, temp_file in [
+                        (f"{hdfs_dir}/model_finetune_{target}.h5", temp_model_file),
+                        (f"{hdfs_dir}/scaler_X_{target}.pkl", temp_scaler_X_file),
+                        (f"{hdfs_dir}/scaler_y_{target}.pkl", temp_scaler_y_file)
                     ]:
                         hdfs_path = spark._jvm.org.apache.hadoop.fs.Path(file_name)
-                        with fs.create(hdfs_path) as hdfs_file:
-                            hdfs_file.write(buffer.getvalue())
+                        with open(temp_file.name, 'rb') as local_file:
+                            with fs.create(hdfs_path) as hdfs_file:
+                                hdfs_file.write(local_file.read())
+                        os.remove(temp_file.name)
                 
                 logger.info(f"Fine-tuning cho {ticker} - {target} hoàn tất, lưu vào {hdfs_dir}")
             except Exception as e:

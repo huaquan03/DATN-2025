@@ -11,7 +11,7 @@ services:
       - shared_net
 
   kafka1:
-    image: confluentinc/cp-kafka:latest
+    image: confluentinc/cp-kafka:7.5.0
     hostname: kafka1
     container_name: kafka1
     ports:
@@ -27,7 +27,7 @@ services:
       - shared_net
 
   kafka2:
-    image: confluentinc/cp-kafka:latest
+    image: confluentinc/cp-kafka:7.5.0
     hostname: kafka2
     container_name: kafka2
     ports:
@@ -42,7 +42,7 @@ services:
     networks:
       - shared_net
   kafka3:
-    image: confluentinc/cp-kafka:latest
+    image: confluentinc/cp-kafka:7.5.0
     hostname: kafka3
     container_name: kafka3
     ports:
@@ -65,7 +65,7 @@ services:
     environment:
       # Lưu ý: sử dụng cổng container của Zookeeper là 2181
       ZK_HOSTS: "zookeeper:2181"
-      KAFKA_BROKERCONNECT: "kafka1:9093,kafka2:9093"
+      KAFKA_BROKERCONNECT: "kafka1:9093,kafka2:9093,kafka3:9093"
     networks:
       - shared_net
 

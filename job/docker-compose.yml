@@ -15,12 +15,10 @@ services:
     build: ./spark_streaming
     container_name: spark-streaming
     environment:
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:9093
-      - HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop
-      - YARN_CONF_DIR=/opt/hadoop/etc/hadoop
+      - HADOOP_CONF_DIR=/opt/hadoop/conf
     volumes:
       - ./spark_output:/data/output
-      - /home/huaquan/desktop/DATN-2025/storage/hdfs/hadoop-conf:/opt/hadoop-2.7.4/etc/hadoop 
+      - /home/huaquan/desktop/DATN-2025/storage/hdfs/hadoop-conf:/opt/hadoop/conf
     networks:
       - shared_net
 

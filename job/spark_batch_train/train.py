@@ -10,7 +10,8 @@ from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import TimeSeriesSplit
 import logging
 import time
-from io import BytesIO
+import tempfile
+import os
 
 # Thiết lập logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -127,23 +128,29 @@ def split_train_total():
             return
         model_common, scaler_X_common, scaler_y_common = train_lstm(X, y, timesteps=30, epochs=50)
         
-        # Lưu mô hình và scaler vào bộ nhớ tạm
-        with BytesIO() as model_buffer, BytesIO() as scaler_X_buffer, BytesIO() as scaler_y_buffer:
-            model_common.save(model_buffer)
-            pd.to_pickle(scaler_X_common, scaler_X_buffer)
-            pd.to_pickle(scaler_y_common, scaler_y_buffer)
+        # Lưu mô hình và scaler vào file tạm cục bộ
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".h5") as temp_model_file, \
+             tempfile.NamedTemporaryFile(delete=False, suffix=".pkl") as temp_scaler_X_file, \
+             tempfile.NamedTemporaryFile(delete=False, suffix=".pkl") as temp_scaler_y_file:
             
-            # Lưu trực tiếp lên HDFS bằng Spark Hadoop FileSystem API
+            # Lưu mô hình và scaler
+            model_common.save(temp_model_file.name)
+            pd.to_pickle(scaler_X_common, temp_scaler_X_file.name)
+            pd.to_pickle(scaler_y_common, temp_scaler_y_file.name)
+            
+            # Lưu lên HDFS bằng Spark Hadoop FileSystem API
             fs = spark._jvm.org.apache.hadoop.fs.FileSystem.get(spark._jsc.hadoopConfiguration())
-            for file_name, buffer in [
-                ("temp_common_model.h5", model_buffer),
-                ("temp_scaler_X_common.pkl", scaler_X_buffer),
-                ("temp_scaler_y_common.pkl", scaler_y_buffer)
+            for file_name, temp_file in [
+                ("temp_common_model.h5", temp_model_file),
+                ("temp_scaler_X_common.pkl", temp_scaler_X_file),
+                ("temp_scaler_y_common.pkl", temp_scaler_y_file)
             ]:
                 hdfs_path = spark._jvm.org.apache.hadoop.fs.Path(f"/model/{file_name}")
-                with fs.create(hdfs_path) as hdfs_file:
-                    hdfs_file.write(buffer.getvalue())
-        
+                with open(temp_file.name, 'rb') as local_file:
+                    with fs.create(hdfs_path) as hdfs_file:
+                        hdfs_file.write(local_file.read())
+                os.remove(temp_file.name)  # Xóa file tạm
+            
         logger.info("Đã lưu mô hình tổng và scaler chung vào HDFS: /model")
     except Exception as e:
         logger.error(f"Lỗi khi huấn luyện mô hình chung: {e}")

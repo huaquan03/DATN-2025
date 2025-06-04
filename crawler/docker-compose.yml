@@ -4,7 +4,7 @@ services:
     build: ./realtime
     container_name: crawler-realtime
     environment:
-      KAFKA_BOOTSTRAP_SERVERS: kafka1:9093,kafka2:9093
+      KAFKA_BOOTSTRAP_SERVERS: kafka1:9093,kafka2:9093,kafka3:9093
     networks:
       - shared_net
     ports:
